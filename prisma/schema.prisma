@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        Int       @id @default(autoincrement())
+  email     String    @unique
+  password  String
+  name      String
+  role      Role      @default(USER)
+  profileImage String?
+  phone     String?
+  address   String?
+  resetOTP       String?   // Added for password reset
+  resetOTPExpiry DateTime? // Added for password reset
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  
+  orders    Order[]
+  reviews   Review[]
+  messagesSent     Message[] @relation("SentMessages")
+  messagesReceived Message[] @relation("ReceivedMessages")
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  name        String
+  description String
+  price       Float
+  stock       Int         @default(0)
+  imageUrl    String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  orderItems  OrderItem[]
+  reviews     Review[]
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  userId          Int
+  user            User        @relation(fields: [userId], references: [id])
+  totalAmount           Float
+  status                OrderStatus @default(PENDING)
+  razorpayOrderId       String?     @unique
+  razorpayPaymentId     String?
+  shippingAddress       Json?
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+
+  orderItems            OrderItem[]
+  returnRequest         ReturnRequest?
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  OUT_FOR_DELIVERY
+  DELIVERED
+  CANCELLED
+  RETURN_ACCEPTED
+  OUT_FOR_PICKUP
+  RETURNED
+}
+
+model OrderItem {
+  id        Int      @id @default(autoincrement())
+  orderId   Int
+  order     Order    @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float    // Price at the time of purchase
+}
+
+model Review {
+  id        Int      @id @default(autoincrement())
+  rating    Int      @default(5)
+  comment   String?
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, productId])
+}
+
+model Message {
+  id          Int      @id @default(autoincrement())
+  senderId    Int
+  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId  Int?     // Null receiver could imply global admin chat if implemented that way, or specific admin ID
+  receiver    User?    @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content     String
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+}
+
+model ReturnRequest {
+  id              Int          @id @default(autoincrement())
+  orderId         Int          @unique
+  order           Order        @relation(fields: [orderId], references: [id])
+  reason          String
+  description     String
+  images          String[]     // Array of Cloudinary image URLs
+  status          ReturnStatus @default(PENDING)
+  adminReason     String?
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+}
+
+enum ReturnStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+  OUT_FOR_PICKUP
+  RETURNED
+}
+
+model Discount {
+  id             Int          @id @default(autoincrement())
+  code           String       @unique
+  type           DiscountType @default(PERCENTAGE)
+  value          Float        // % off or flat ₹ off
+  minOrderAmount Float        @default(0)
+  maxUses        Int?         // null = unlimited
+  usedCount      Int          @default(0)
+  isActive       Boolean      @default(true)
+  expiresAt      DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+}
+
+enum DiscountType {
+  PERCENTAGE
+  FLAT
+}
