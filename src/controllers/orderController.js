@@ -7,7 +7,7 @@ const Razorpay = require('razorpay');
 // @access  Private
 const createOrder = async (req, res) => {
     try {
-        const { orderItems, totalAmount } = req.body;
+        const { orderItems, totalAmount, shippingAddress } = req.body;
 
         if (orderItems && orderItems.length === 0) {
             return res.status(400).json({ message: 'No order items' });
@@ -37,6 +37,7 @@ const createOrder = async (req, res) => {
             data: {
                 totalAmount: parseFloat(totalAmount),
                 userId: req.user.id,
+                shippingAddress: shippingAddress || null,
                 orderItems: {
                     create: orderItems.map(item => ({
                         productId: item.productId,
