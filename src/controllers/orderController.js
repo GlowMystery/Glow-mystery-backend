@@ -37,7 +37,12 @@ const createOrder = async (req, res) => {
             data: {
                 totalAmount: parseFloat(totalAmount),
                 userId: req.user.id,
-                shippingAddress: shippingAddress || null,
+                shippingName: shippingAddress ? shippingAddress.name : null,
+                shippingPhone: shippingAddress ? shippingAddress.phone : null,
+                shippingStreet: shippingAddress ? shippingAddress.street : null,
+                shippingCity: shippingAddress ? shippingAddress.city : null,
+                shippingState: shippingAddress ? shippingAddress.state : null,
+                shippingZip: shippingAddress ? shippingAddress.zip : null,
                 orderItems: {
                     create: orderItems.map(item => ({
                         productId: item.productId,

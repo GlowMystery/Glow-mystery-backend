@@ -156,7 +156,14 @@ const verifySession = async (req, res) => {
                     data: {
                         status: 'PAID',
                         razorpayPaymentId: razorpay_payment_id,
-                        ...(shippingAddress && { shippingAddress })
+                        ...(shippingAddress && { 
+                            shippingName: shippingAddress.name,
+                            shippingPhone: shippingAddress.phone,
+                            shippingStreet: shippingAddress.street,
+                            shippingCity: shippingAddress.city,
+                            shippingState: shippingAddress.state,
+                            shippingZip: shippingAddress.zip,
+                        })
                     },
                     include: { user: true, orderItems: true }
                 });

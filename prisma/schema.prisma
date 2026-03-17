@@ -8,21 +8,21 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  email     String    @unique
-  password  String
-  name      String
-  role      Role      @default(USER)
-  profileImage String?
-  phone     String?
-  address   String?
-  resetOTP       String?   // Added for password reset
+  id             Int       @id @default(autoincrement())
+  email          String    @unique
+  password       String
+  name           String
+  role           Role      @default(USER)
+  profileImage   String?
+  phone          String?
+  address        String?
+  resetOTP       String? // Added for password reset
   resetOTPExpiry DateTime? // Added for password reset
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  
-  orders    Order[]
-  reviews   Review[]
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  orders           Order[]
+  reviews          Review[]
   messagesSent     Message[] @relation("SentMessages")
   messagesReceived Message[] @relation("ReceivedMessages")
 }
@@ -33,33 +33,38 @@ enum Role {
 }
 
 model Product {
-  id          Int         @id @default(autoincrement())
+  id          Int      @id @default(autoincrement())
   name        String
   description String
   price       Float
-  stock       Int         @default(0)
+  stock       Int      @default(0)
   imageUrl    String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  orderItems  OrderItem[]
-  reviews     Review[]
+  orderItems OrderItem[]
+  reviews    Review[]
 }
 
 model Order {
-  id              Int         @id @default(autoincrement())
-  userId          Int
-  user            User        @relation(fields: [userId], references: [id])
-  totalAmount           Float
-  status                OrderStatus @default(PENDING)
-  razorpayOrderId       String?     @unique
-  razorpayPaymentId     String?
-  shippingAddress       Json?
-  createdAt             DateTime        @default(now())
-  updatedAt             DateTime        @updatedAt
+  id                Int         @id @default(autoincrement())
+  userId            Int
+  user              User        @relation(fields: [userId], references: [id])
+  totalAmount       Float
+  status            OrderStatus @default(PENDING)
+  razorpayOrderId   String?     @unique
+  razorpayPaymentId String?
+  shippingName      String?
+  shippingPhone     String?
+  shippingStreet    String?
+  shippingCity      String?
+  shippingState     String?
+  shippingZip       String?
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
 
-  orderItems            OrderItem[]
-  returnRequest         ReturnRequest?
+  orderItems    OrderItem[]
+  returnRequest ReturnRequest?
 }
 
 enum OrderStatus {
@@ -75,13 +80,13 @@ enum OrderStatus {
 }
 
 model OrderItem {
-  id        Int      @id @default(autoincrement())
+  id        Int     @id @default(autoincrement())
   orderId   Int
-  order     Order    @relation(fields: [orderId], references: [id])
+  order     Order   @relation(fields: [orderId], references: [id])
   productId Int
-  product   Product  @relation(fields: [productId], references: [id])
+  product   Product @relation(fields: [productId], references: [id])
   quantity  Int
-  price     Float    // Price at the time of purchase
+  price     Float // Price at the time of purchase
 }
 
 model Review {
@@ -99,27 +104,27 @@ model Review {
 }
 
 model Message {
-  id          Int      @id @default(autoincrement())
-  senderId    Int
-  sender      User     @relation("SentMessages", fields: [senderId], references: [id])
-  receiverId  Int?     // Null receiver could imply global admin chat if implemented that way, or specific admin ID
-  receiver    User?    @relation("ReceivedMessages", fields: [receiverId], references: [id])
-  content     String
-  isRead      Boolean  @default(false)
-  createdAt   DateTime @default(now())
+  id         Int      @id @default(autoincrement())
+  senderId   Int
+  sender     User     @relation("SentMessages", fields: [senderId], references: [id])
+  receiverId Int? // Null receiver could imply global admin chat if implemented that way, or specific admin ID
+  receiver   User?    @relation("ReceivedMessages", fields: [receiverId], references: [id])
+  content    String
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
 }
 
 model ReturnRequest {
-  id              Int          @id @default(autoincrement())
-  orderId         Int          @unique
-  order           Order        @relation(fields: [orderId], references: [id])
-  reason          String
-  description     String
-  images          String[]     // Array of Cloudinary image URLs
-  status          ReturnStatus @default(PENDING)
-  adminReason     String?
-  createdAt       DateTime     @default(now())
-  updatedAt       DateTime     @updatedAt
+  id          Int          @id @default(autoincrement())
+  orderId     Int          @unique
+  order       Order        @relation(fields: [orderId], references: [id])
+  reason      String
+  description String
+  images      String[] // Array of Cloudinary image URLs
+  status      ReturnStatus @default(PENDING)
+  adminReason String?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
 }
 
 enum ReturnStatus {
@@ -134,9 +139,9 @@ model Discount {
   id             Int          @id @default(autoincrement())
   code           String       @unique
   type           DiscountType @default(PERCENTAGE)
-  value          Float        // % off or flat ₹ off
+  value          Float // % off or flat ₹ off
   minOrderAmount Float        @default(0)
-  maxUses        Int?         // null = unlimited
+  maxUses        Int? // null = unlimited
   usedCount      Int          @default(0)
   isActive       Boolean      @default(true)
   expiresAt      DateTime?
