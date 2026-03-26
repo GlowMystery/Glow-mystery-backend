@@ -25,6 +25,7 @@ model User {
   reviews          Review[]
   messagesSent     Message[] @relation("SentMessages")
   messagesReceived Message[] @relation("ReceivedMessages")
+  wishlistItems    WishlistItem[]
 }
 
 enum Role {
@@ -44,6 +45,7 @@ model Product {
 
   orderItems OrderItem[]
   reviews    Review[]
+  wishlistedBy WishlistItem[]
 }
 
 model Order {
@@ -153,3 +155,15 @@ enum DiscountType {
   PERCENTAGE
   FLAT
 }
+
+model WishlistItem {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  productId Int
+  product   Product  @relation(fields: [productId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+}
+
